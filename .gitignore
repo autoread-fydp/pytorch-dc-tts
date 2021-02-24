@@ -7,3 +7,4 @@ logdir/
 samples
 *.npy
 *.tar.bz2
+datasets/processed_data

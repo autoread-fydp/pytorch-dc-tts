@@ -7,3 +7,5 @@ scipy
 pandas
 requests
 scikit-image
+inflect==0.2.5
+Unidecode==0.4.20
