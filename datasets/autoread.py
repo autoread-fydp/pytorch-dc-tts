@@ -50,7 +50,7 @@ def get_test_data(sentences, max_n):
 
 
 class AutoReadData(Dataset):
-    def __init__(self, keys, dir_name='processed_data'):
+    def __init__(self, keys, dir_name='processed_anne'):
         self.keys = keys
         self.path = os.path.join(os.path.dirname(os.path.realpath(__file__)), dir_name)
         self.fnames, self.text_lengths, self.texts = read_metadata(os.path.join(self.path, 'metadata.csv'))
@@ -69,7 +69,12 @@ class AutoReadData(Dataset):
             data['texts'] = self.texts[index]
         if 'mels' in self.keys:
             # (39, 80)
-            data['mels'] = np.load(os.path.join(self.path, "mels", "mel-%s.npy" % self.fnames[index]))
+            data['mels'] = np.load(os.path.join(self.path, "mels", "%s.npy" % self.fnames[index]))
+        if 'mags' in self.keys:
+            # (39, 80)
+            data['mags'] = np.load(os.path.join(self.path, 'mags', "%s.npy" % self.fnames[index]))
         if 'mel_gates' in self.keys:
             data['mel_gates'] = np.ones(data['mels'].shape[0], dtype=np.int)  # TODO: because pre processing!
+        if 'mag_gates' in self.keys:
+            data['mag_gates'] = np.ones(data['mags'].shape[0], dtype=np.int)  # TODO: because pre processing!
         return data
