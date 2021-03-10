@@ -11,6 +11,9 @@ from scipy import signal
 from hparams import HParams as hp
 
 
+_mel_basis = librosa.filters.mel(hp.sr, hp.n_fft, hp.n_mels)  # (n_mels, 1+n_fft//2)
+
+
 def spectrogram2wav(mag):
     '''# Generate wave file from linear magnitude spectrogram
     Args:
@@ -61,7 +64,49 @@ def invert_spectrogram(spectrogram):
     return librosa.istft(spectrogram, hp.hop_length, win_length=hp.win_length, window="hann")
 
 
-def get_spectrograms(fpath):
+def load_wav(fpath):
+    return librosa.load(fpath, sr=hp.sr)[0]
+    
+
+def preemphasis(x):
+    return np.append(x[0], x[1:] - hp.preemphasis * x[:-1])
+    
+    
+def _stft(y):
+  return librosa.stft(y=y, n_fft=hp.n_fft, hop_length=hp.hop_length, win_length=hp.win_length)
+
+
+def _amp_to_db(x):
+  return 20 * np.log10(np.maximum(1e-5, x))
+  
+
+def _normalize(S):
+  return np.clip((S + hp.max_db) / hp.max_db, 1e-8, 1)
+  
+  
+def _linear_to_mel(spectrogram):
+    return np.dot(_mel_basis, spectrogram)
+    
+
+def melspectrogram(y, spectrogram=False):
+    if not spectrogram:
+        D = _stft(preemphasis(y))
+    else:
+        D = y
+    S = _amp_to_db(_linear_to_mel(np.abs(D))) - hp.ref_db
+    return _normalize(S)
+
+
+def spectrogram(y, spectrogram=False):
+    if not spectrogram:
+        D = _stft(preemphasis(y))
+    else:
+        D = y
+    S = _amp_to_db(np.abs(D)) - hp.ref_db
+    return _normalize(S)
+
+
+def get_spectrograms(fpath, trim=True):
     '''Parse the wave file in `fpath` and
     Returns normalized melspectrogram and linear spectrogram.
     Args:
@@ -71,34 +116,27 @@ def get_spectrograms(fpath):
       mag: A 2d array of shape (T, 1+n_fft/2) and dtype of float32.
     '''
     # Loading sound file
-    y, sr = librosa.load(fpath, sr=hp.sr)
+    y = load_wav(fpath)
 
-    # Trimming
-    y, _ = librosa.effects.trim(y)
+    if trim:
+        # Trimming
+        y, _ = librosa.effects.trim(y)
 
     # Preemphasis
-    y = np.append(y[0], y[1:] - hp.preemphasis * y[:-1])
+    y = preemphasis(y)
 
     # stft
-    linear = librosa.stft(y=y,
-                          n_fft=hp.n_fft,
-                          hop_length=hp.hop_length,
-                          win_length=hp.win_length)
+    linear = _stft(y)
 
     # magnitude spectrogram
-    mag = np.abs(linear)  # (1+n_fft//2, T)
+    mag = spectrogram(linear, spectrogram=True)
 
     # mel spectrogram
-    mel_basis = librosa.filters.mel(hp.sr, hp.n_fft, hp.n_mels)  # (n_mels, 1+n_fft//2)
-    mel = np.dot(mel_basis, mag)  # (n_mels, t)
+    mel = melspectrogram(linear, spectrogram=True)
 
     # to decibel
     mel = 20 * np.log10(np.maximum(1e-5, mel))
     mag = 20 * np.log10(np.maximum(1e-5, mag))
-
-    # normalize
-    mel = np.clip((mel - hp.ref_db + hp.max_db) / hp.max_db, 1e-8, 1)
-    mag = np.clip((mag - hp.ref_db + hp.max_db) / hp.max_db, 1e-8, 1)
 
     # Transpose
     mel = mel.T.astype(np.float32)  # (T, n_mels)

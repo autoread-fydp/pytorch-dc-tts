@@ -20,13 +20,15 @@ from utils import get_last_checkpoint_file_name, load_checkpoint, save_checkpoin
 from datasets.data_loader import Text2MelDataLoader
 
 parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-parser.add_argument("--dataset", required=True, choices=['ljspeech', 'mbspeech', 'autoread'], help='dataset name')
+parser.add_argument("--dataset", required=True, choices=['ljspeech', 'mbspeech', 'autoread', 'blizzard'], help='dataset name')
 args = parser.parse_args()
 
 if args.dataset == 'ljspeech':
     from datasets.lj_speech import vocab, LJSpeech as SpeechDataset
 elif args.dataset == "autoread":
     from datasets.autoread import vocab, AutoReadData as SpeechDataset
+elif args.dataset == "blizzard":
+    from datasets.blizzard import vocab, Blizzard as SpeechDataset
 else:
     from datasets.mb_speech import vocab, MBSpeech as SpeechDataset
 
@@ -36,9 +38,9 @@ print('use_gpu', use_gpu)
 if use_gpu:
     torch.backends.cudnn.benchmark = True
 
-train_data_loader = Text2MelDataLoader(text2mel_dataset=SpeechDataset(['texts', 'mels', 'mel_gates']), batch_size=64,
+train_data_loader = Text2MelDataLoader(text2mel_dataset=SpeechDataset(['texts', 'mels', 'mel_gates']), batch_size=25,
                                        mode='train')
-valid_data_loader = Text2MelDataLoader(text2mel_dataset=SpeechDataset(['texts', 'mels', 'mel_gates']), batch_size=64,
+valid_data_loader = Text2MelDataLoader(text2mel_dataset=SpeechDataset(['texts', 'mels', 'mel_gates']), batch_size=25,
                                        mode='valid')
 
 text2mel = Text2Mel(vocab).cuda()

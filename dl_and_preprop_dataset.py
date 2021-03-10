@@ -20,9 +20,10 @@ from audio import preprocess
 from utils import download_file
 from datasets.mb_speech import MBSpeech
 from datasets.lj_speech import LJSpeech
+from datasets.autoread import AutoReadData
 
 parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-parser.add_argument("--dataset", required=True, choices=['ljspeech', 'mbspeech'], help='dataset name')
+parser.add_argument("--dataset", required=True, choices=['ljspeech', 'mbspeech', "autoread"], help='dataset name')
 args = parser.parse_args()
 
 if args.dataset == 'ljspeech':
@@ -160,3 +161,7 @@ elif args.dataset == 'mbspeech':
     print("pre processing...")
     mb_speech = MBSpeech([])
     preprocess(dataset_path, mb_speech)
+elif args.dataset == 'autoread':
+    autoread = AutoReadData([])
+    dataset_path = autoread.path
+    preprocess(dataset_path, autoread)

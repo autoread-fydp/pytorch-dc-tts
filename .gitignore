@@ -8,3 +8,8 @@ samples
 *.npy
 *.tar.bz2
 datasets/processed_data
+datasets/*/*
+datasets/*.tar.gz
+datasets/*.zip
+notebooks/*.pth
+notebooks/*.wav
