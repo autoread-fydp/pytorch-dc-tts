@@ -54,7 +54,7 @@ def get_test_data(sentences, max_n):
 
 
 class AutoReadData(Dataset):
-    def __init__(self, keys, dir_name='blizzard'):
+    def __init__(self, keys, dir_name='processed_anne-4'):
         self.keys = keys
         self.path = os.path.join(os.path.dirname(os.path.realpath(__file__)), dir_name)
         self.fnames, self.text_lengths, self.texts = read_metadata(os.path.join(self.path, 'metadata.csv'))
