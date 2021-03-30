@@ -134,10 +134,6 @@ def get_spectrograms(fpath, trim=True):
     # mel spectrogram
     mel = melspectrogram(linear, spectrogram=True)
 
-    # to decibel
-    mel = 20 * np.log10(np.maximum(1e-5, mel))
-    mag = 20 * np.log10(np.maximum(1e-5, mag))
-
     # Transpose
     mel = mel.T.astype(np.float32)  # (T, n_mels)
     mag = mag.T.astype(np.float32)  # (T, 1+n_fft//2)
